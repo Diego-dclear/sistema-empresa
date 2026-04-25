@@ -42,66 +42,107 @@
     .conteudo {
       padding: 20px;
     }
+
+    input {
+      padding: 5px;
+    }
+
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .item {
+      margin-top: 10px;
+      padding: 5px;
+      background: #222;
+    }
   </style>
 </head>
 
 <body>
 
-<header>
-  Sistema de Vendas e Estoque
-</header>
+  <header>
+    Sistema de Vendas e Estoque
+  </header>
 
-<div class="abas">
-  <div class="aba ativa">Anotações</div>
-  <div class="aba">Vendas</div>
-  <div class="aba">Estoque</div>
-  <div class="aba">Financeiro</div>
-</div>
+  <div class="abas">
+    <div class="aba ativa">Anotações</div>
+    <div class="aba">Vendas</div>
+    <div class="aba">Estoque</div>
+    <div class="aba">Financeiro</div>
+  </div>
 
-<div class="conteudo">
-  <h2>Bem-vindo ao sistema</h2>
-  <p>Primeira versão em construção...</p>
-</div>
-<script>
-  const abas = document.querySelectorAll(".aba");
-
-  abas.forEach((aba, index) => {
-    aba.addEventListener("click", () => {
-
-      // remove ativa de todas
-      abas.forEach(a => a.classList.remove("ativa"));
-
-      // ativa a clicada
-      aba.classList.add("ativa");
-
-      // muda o conteúdo
-      const conteudo = document.querySelector(".conteudo");
-
-   if (index === 0) {
-  conteudo.innerHTML = `
+  <div class="conteudo" id="conteudo">
     <h2>Anotações</h2>
 
-    <input id="nomeCliente" placeholder="Nome do cliente" style="padding:5px;">
+    <input id="nomeCliente" placeholder="Nome do cliente">
     <button onclick="criarCliente()">Criar</button>
 
-    <div id="listaClientes" style="margin-top:20px;"></div>
-  `;
-}
+    <div id="listaClientes"></div>
+  </div>
 
-      if (index === 1) {
-        conteudo.innerHTML = "<h2>Vendas</h2><p>Histórico de vendas...</p>";
-      }
+  <script>
+    const abas = document.querySelectorAll(".aba");
+    const conteudo = document.getElementById("conteudo");
 
-      if (index === 2) {
-        conteudo.innerHTML = "<h2>Estoque</h2><p>Controle de produtos...</p>";
-      }
+    abas.forEach((aba, index) => {
+      aba.addEventListener("click", () => {
 
-      if (index === 3) {
-        conteudo.innerHTML = "<h2>Financeiro</h2><p>Área restrita...</p>";
-      }
+        // remove ativa
+        abas.forEach(a => a.classList.remove("ativa"));
 
+        // ativa clicada
+        aba.classList.add("ativa");
+
+        // troca conteúdo
+        if (index === 0) {
+          conteudo.innerHTML = `
+            <h2>Anotações</h2>
+            <input id="nomeCliente" placeholder="Nome do cliente">
+            <button onclick="criarCliente()">Criar</button>
+            <div id="listaClientes"></div>
+          `;
+        }
+
+        if (index === 1) {
+          conteudo.innerHTML = `
+            <h2>Vendas</h2>
+            <p>Histórico de vendas...</p>
+          `;
+        }
+
+        if (index === 2) {
+          conteudo.innerHTML = `
+            <h2>Estoque</h2>
+            <p>Controle de produtos...</p>
+          `;
+        }
+
+        if (index === 3) {
+          conteudo.innerHTML = `
+            <h2>Financeiro</h2>
+            <p>Área restrita...</p>
+          `;
+        }
+
+      });
     });
-  });
-</script>
+
+    function criarCliente() {
+      const input = document.getElementById("nomeCliente");
+      const lista = document.getElementById("listaClientes");
+
+      if (input.value.trim() !== "") {
+        const novo = document.createElement("div");
+        novo.classList.add("item");
+        novo.textContent = input.value;
+
+        lista.appendChild(novo);
+        input.value = "";
+      }
+    }
+  </script>
+
 </body>
 </html>
