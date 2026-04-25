@@ -77,9 +77,16 @@
       // muda o conteúdo
       const conteudo = document.querySelector(".conteudo");
 
-      if (index === 0) {
-        conteudo.innerHTML = "<h2>Anotações</h2><p>Área de atendimento...</p>";
-      }
+    if (index === 0) {
+  conteudo.innerHTML = `
+    <h2>Anotações</h2>
+
+    <input id="nomeCliente" placeholder="Nome do cliente" style="padding:5px;">
+    <button onclick="criarCliente()">Criar</button>
+
+    <div id="listaClientes" style="margin-top:20px;"></div>
+  `;
+}
 
       if (index === 1) {
         conteudo.innerHTML = "<h2>Vendas</h2><p>Histórico de vendas...</p>";
