@@ -1,148 +1,168 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Sistema Empresa</title>
+<meta charset="UTF-8">
+<title>Sistema Empresa</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: black;
-      color: white;
-    }
+<style>
+body { background:#000; color:#fff; font-family:Arial; margin:0; }
+header { background:red; padding:10px; text-align:center; }
+.abas { display:flex; background:#111; }
+.aba { padding:10px; cursor:pointer; }
+.ativa { border-bottom:2px solid red; }
+.conteudo { padding:20px; }
+.item { background:#222; margin:10px 0; padding:10px; }
+.alerta { color:red; animation: pisca 1s infinite; }
+@keyframes pisca { 50% { opacity:0; } }
+</style>
 
-    header {
-      background-color: red;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .abas {
-      display: flex;
-      background: #111;
-    }
-
-    .aba {
-      padding: 10px 20px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-    }
-
-    .aba:hover {
-      background: #222;
-    }
-
-    .ativa {
-      border-bottom: 2px solid red;
-    }
-
-    .conteudo {
-      padding: 20px;
-    }
-
-    input {
-      padding: 5px;
-    }
-
-    button {
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-
-    .item {
-      margin-top: 10px;
-      padding: 5px;
-      background: #222;
-    }
-  </style>
 </head>
-
 <body>
 
-  <header>
-    Sistema de Vendas e Estoque
-  </header>
+<header>
+Sistema de Vendas e Estoque<br>
+<span id="relogio"></span>
+</header>
 
-  <div class="abas">
-    <div class="aba ativa">Anotações</div>
-    <div class="aba">Vendas</div>
-    <div class="aba">Estoque</div>
-    <div class="aba">Financeiro</div>
-  </div>
+<div class="abas">
+<div class="aba ativa">Anotações</div>
+<div class="aba">Vendas</div>
+<div class="aba">Estoque</div>
+</div>
 
-  <div class="conteudo" id="conteudo">
-    <h2>Anotações</h2>
+<div class="conteudo" id="conteudo"></div>
 
-    <input id="nomeCliente" placeholder="Nome do cliente">
-    <button onclick="criarCliente()">Criar</button>
+<script>
+let comandas = JSON.parse(localStorage.getItem("comandas")) || [];
+let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
 
-    <div id="listaClientes"></div>
-  </div>
+let estoque = JSON.parse(localStorage.getItem("estoque")) || [
+  {nome:"Coca", preco:5, qtd:10, min:3},
+  {nome:"Salgado", preco:7, qtd:10, min:3}
+];
 
-  <script>
-    const abas = document.querySelectorAll(".aba");
-    const conteudo = document.getElementById("conteudo");
+function salvar() {
+  localStorage.setItem("comandas", JSON.stringify(comandas));
+  localStorage.setItem("vendas", JSON.stringify(vendas));
+  localStorage.setItem("estoque", JSON.stringify(estoque));
+}
 
-    abas.forEach((aba, index) => {
-      aba.addEventListener("click", () => {
+function atualizarRelogio() {
+  const agora = new Date().toLocaleString("pt-BR");
+  document.getElementById("relogio").innerText = agora;
+}
+setInterval(atualizarRelogio,1000);
 
-        // remove ativa
-        abas.forEach(a => a.classList.remove("ativa"));
+const abas = document.querySelectorAll(".aba");
+const conteudo = document.getElementById("conteudo");
 
-        // ativa clicada
-        aba.classList.add("ativa");
+abas.forEach((aba,i)=>{
+  aba.onclick=()=>{
+    abas.forEach(a=>a.classList.remove("ativa"));
+    aba.classList.add("ativa");
 
-        // troca conteúdo
-        if (index === 0) {
-          conteudo.innerHTML = `
-            <h2>Anotações</h2>
-            <input id="nomeCliente" placeholder="Nome do cliente">
-            <button onclick="criarCliente()">Criar</button>
-            <div id="listaClientes"></div>
-          `;
-        }
+    if(i===0) renderComandas();
+    if(i===1) renderVendas();
+    if(i===2) renderEstoque();
+  }
+});
 
-        if (index === 1) {
-          conteudo.innerHTML = `
-            <h2>Vendas</h2>
-            <p>Histórico de vendas...</p>
-          `;
-        }
+function renderComandas(){
+  conteudo.innerHTML=`
+  <h2>Anotações</h2>
+  <input id="nome"><button onclick="novaComanda()">Criar</button>
+  <div id="lista"></div>
+  `;
+  const lista=document.getElementById("lista");
 
-        if (index === 2) {
-          conteudo.innerHTML = `
-            <h2>Estoque</h2>
-            <p>Controle de produtos...</p>
-          `;
-        }
+  comandas.forEach((c,i)=>{
+    let total=0;
+    c.itens.forEach(p=> total+=p.preco);
 
-        if (index === 3) {
-          conteudo.innerHTML = `
-            <h2>Financeiro</h2>
-            <p>Área restrita...</p>
-          `;
-        }
+    lista.innerHTML+=`
+    <div class="item">
+    <b>${c.nome}</b><br>
+    Total: R$ ${total.toFixed(2)}<br><br>
 
-      });
-    });
+    <select id="prod${i}">
+      ${estoque.map(p=>`<option>${p.nome}</option>`).join("")}
+    </select>
+    <button onclick="addProduto(${i})">Adicionar</button>
 
-    function criarCliente() {
-      const input = document.getElementById("nomeCliente");
-      const lista = document.getElementById("listaClientes");
+    <div>
+      ${c.itens.map(p=>`${p.nome} - R$${p.preco}`).join("<br>")}
+    </div>
 
-      if (input.value.trim() !== "") {
-        const novo = document.createElement("div");
-        novo.classList.add("item");
-        novo.textContent = input.value;
+    <button onclick="finalizar(${i})">Finalizar</button>
+    </div>
+    `;
+  });
+}
 
-        lista.appendChild(novo);
-        input.value = "";
-      }
-    }
-  </script>
+function novaComanda(){
+  const nome=document.getElementById("nome").value;
+  if(!nome) return;
+  comandas.push({nome,itens:[]});
+  salvar();
+  renderComandas();
+}
+
+function addProduto(i){
+  const select=document.getElementById("prod"+i);
+  const prod=estoque.find(p=>p.nome===select.value);
+
+  if(prod.qtd<=0) return alert("Sem estoque!");
+
+  comandas[i].itens.push({nome:prod.nome,preco:prod.preco});
+  prod.qtd--;
+
+  salvar();
+  renderComandas();
+}
+
+function finalizar(i){
+  vendas.push({
+    ...comandas[i],
+    data:new Date().toLocaleString("pt-BR")
+  });
+
+  comandas.splice(i,1);
+  salvar();
+  renderComandas();
+}
+
+function renderVendas(){
+  conteudo.innerHTML="<h2>Vendas</h2>";
+
+  vendas.forEach(v=>{
+    let total=0;
+    v.itens.forEach(p=> total+=p.preco);
+
+    conteudo.innerHTML+=`
+    <div class="item">
+    ${v.nome}<br>
+    ${v.itens.map(p=>p.nome).join(", ")}<br>
+    Total: R$ ${total.toFixed(2)}<br>
+    ${v.data}
+    </div>
+    `;
+  });
+}
+
+function renderEstoque(){
+  conteudo.innerHTML="<h2>Estoque</h2>";
+
+  estoque.forEach(p=>{
+    conteudo.innerHTML+=`
+    <div class="item ${p.qtd<=p.min ? "alerta":""}">
+    ${p.nome} | Qtd: ${p.qtd}
+    </div>
+    `;
+  });
+}
+
+renderComandas();
+</script>
 
 </body>
 </html>
