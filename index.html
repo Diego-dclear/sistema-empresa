@@ -28,11 +28,15 @@ Sistema de Vendas e Estoque<br>
 <div class="aba ativa">Anotações</div>
 <div class="aba">Vendas</div>
 <div class="aba">Estoque</div>
+<div class="aba">Reposição</div>
+<div class="aba">Financeiro</div>
 </div>
 
 <div class="conteudo" id="conteudo"></div>
 
 <script>
+
+// ================= DADOS =================
 let comandas = JSON.parse(localStorage.getItem("comandas")) || [];
 let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
 
@@ -41,18 +45,21 @@ let estoque = JSON.parse(localStorage.getItem("estoque")) || [
   {nome:"Salgado", preco:7, qtd:10, min:3}
 ];
 
-function salvar() {
+// ================= SALVAR =================
+function salvar(){
   localStorage.setItem("comandas", JSON.stringify(comandas));
   localStorage.setItem("vendas", JSON.stringify(vendas));
   localStorage.setItem("estoque", JSON.stringify(estoque));
 }
 
-function atualizarRelogio() {
-  const agora = new Date().toLocaleString("pt-BR");
-  document.getElementById("relogio").innerText = agora;
+// ================= RELÓGIO =================
+function atualizarRelogio(){
+  document.getElementById("relogio").innerText =
+    new Date().toLocaleString("pt-BR");
 }
 setInterval(atualizarRelogio,1000);
 
+// ================= ABAS =================
 const abas = document.querySelectorAll(".aba");
 const conteudo = document.getElementById("conteudo");
 
@@ -64,15 +71,20 @@ abas.forEach((aba,i)=>{
     if(i===0) renderComandas();
     if(i===1) renderVendas();
     if(i===2) renderEstoque();
+    if(i===3) renderReposicao();
+    if(i===4) renderFinanceiro();
   }
 });
 
+// ================= ANOTAÇÕES =================
 function renderComandas(){
   conteudo.innerHTML=`
   <h2>Anotações</h2>
-  <input id="nome"><button onclick="novaComanda()">Criar</button>
+  <input id="nome" placeholder="Cliente">
+  <button onclick="novaComanda()">Criar</button>
   <div id="lista"></div>
   `;
+
   const lista=document.getElementById("lista");
 
   comandas.forEach((c,i)=>{
@@ -102,6 +114,7 @@ function renderComandas(){
 function novaComanda(){
   const nome=document.getElementById("nome").value;
   if(!nome) return;
+
   comandas.push({nome,itens:[]});
   salvar();
   renderComandas();
@@ -111,7 +124,10 @@ function addProduto(i){
   const select=document.getElementById("prod"+i);
   const prod=estoque.find(p=>p.nome===select.value);
 
-  if(prod.qtd<=0) return alert("Sem estoque!");
+  if(prod.qtd<=0){
+    alert("Sem estoque!");
+    return;
+  }
 
   comandas[i].itens.push({nome:prod.nome,preco:prod.preco});
   prod.qtd--;
@@ -131,6 +147,7 @@ function finalizar(i){
   renderComandas();
 }
 
+// ================= VENDAS =================
 function renderVendas(){
   conteudo.innerHTML="<h2>Vendas</h2>";
 
@@ -149,6 +166,7 @@ function renderVendas(){
   });
 }
 
+// ================= ESTOQUE =================
 function renderEstoque(){
   conteudo.innerHTML="<h2>Estoque</h2>";
 
@@ -161,7 +179,48 @@ function renderEstoque(){
   });
 }
 
+// ================= REPOSIÇÃO =================
+function renderReposicao(){
+  conteudo.innerHTML="<h2>Reposição</h2>";
+
+  const baixos = estoque.filter(p => p.qtd <= p.min);
+
+  if(baixos.length === 0){
+    conteudo.innerHTML += "<p>Estoque OK</p>";
+    return;
+  }
+
+  baixos.forEach(p=>{
+    conteudo.innerHTML += `
+    <div class="item alerta">
+      ${p.nome} precisa reposição
+    </div>
+    `;
+  });
+}
+
+// ================= FINANCEIRO =================
+function renderFinanceiro(){
+  conteudo.innerHTML="<h2>Financeiro</h2>";
+
+  let total=0;
+
+  vendas.forEach(v=>{
+    v.itens.forEach(p=>{
+      total+=p.preco;
+    });
+  });
+
+  conteudo.innerHTML+=`
+  <div class="item">
+    Total: R$ ${total.toFixed(2)}
+  </div>
+  `;
+}
+
+// ================= INICIAR =================
 renderComandas();
+
 </script>
 
 </body>
